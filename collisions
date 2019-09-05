@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<body>
+	<script src="https://d3js.org/d3.v3.min.js"></script>
+	<script>
+		var width = 960,
+			height = 500;
+
+		var nodes = d3.range(10).map(function (d, i) {
+				x = ~~(Math.random() * 40 + 15)
+				return {
+					radius: x,
+				};
+			}),
+			root = nodes[0],
+			color = ['green', 'red', 'blue'];
+		console.log(root)
+		var svg = d3.select('body').append('svg')
+			.attr('width', width)
+			.attr('height', height);
+
+		svg.selectAll('.circle')
+			.data(nodes)
+			.enter()
+			.append('circle')
+			.attr('r', function (d) {
+				return d.radius;
+			})
+			.style('fill', function (d, i) {
+				return color[i % 3];
+			})
+			// .attr('transform', function(d) { return 'translate(' + (-d.radius) + ',' + (-d.radius) + ')'; })
+			.style('stroke', 'black')
+			.style('stroke-width', '2px')
+
+
+
+		var force = d3.layout.force()
+			// .gravity(0.05)
+			.charge(.01)
+			.nodes(nodes)
+			.size([width, height])
+			.on('tick', (e) => {
+				var q = d3.geom.quadtree(nodes),
+					i = 0,
+					n = nodes.length;
+
+				while (++i < n) {
+					q.visit(collide(nodes[i]));
+				}
+
+				svg.selectAll('circle')
+					.attr('cx', (d) => d.x)
+					.attr('cy', (d) => d.y)
+					.call(force.drag)
+			});
+
+		force.start();
+
+		var collide = (node) => {
+			return (quad, x1, y1, x2, y2) => {
+				var updated = false;
+				// console.log(node)
+				if (quad.point && (quad.point !== node)) {
+					// console.log(quad.point)
+					var delta_x = node.x - quad.point.x,
+						delta_y = node.y - quad.point.y,
+						l = Math.sqrt(delta_x * delta_x + delta_y * delta_y),
+						// xSpacing = (quad.point.width + node.width),
+						// ySpacing = (quad.point.height + node.height),
+						// absX = Math.abs(delta_x),
+						// absY = Math.abs(delta_y),
+						r_max = quad.point.radius + node.radius
+
+					if (l <= r_max) {
+						let delta_l = (l - r_max) / l * .3;
+
+						//the one that's barely within the bounds probably triggered the collision
+						// if (Math.abs(lx) > Math.abs(ly)) {
+						// 	lx = 0;
+						// } else {
+						// 	ly = 0;
+						// }
+
+						node.x -= delta_x *= delta_l;
+						node.y -= delta_y *= delta_l;
+						quad.point.x += delta_x;
+						quad.point.y += delta_y;
+
+						updated = true;
+					}
+				}
+				return updated;
+			};
+		}
+	</script>
