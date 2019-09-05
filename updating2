@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<body>
+	<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+		integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8=" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+		integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous">
+	</script>
+	<script src="https://d3js.org/d3.v3.min.js"></script>
+
+
+	<div class="container">
+		<div class="row">
+			<div id="chart-area"></div>
+		</div>
+	</div>
+
+
+	<script>
+		let group1 = [{
+			name: "Group 1",
+			amount: 10
+		}, {
+			name: "Group 2",
+			amount: 5
+		}, {
+			name: "Group 3",
+			amount: 8
+		}, {
+			name: "Group 4",
+			amount: 3
+		}, {
+			name: "Group 5",
+			amount: 9
+		}, {
+			name: "Group 6",
+			amount: 5
+		}]
+
+		let group2 = [{
+			name: "Group 1",
+			amount: 8
+		}, {
+			name: "Group 2",
+			amount: 9
+		}, {
+			name: "Group 3",
+			amount: 6
+		}, {
+			name: "Group 4",
+			amount: 9
+		}, {
+			name: "Group 5",
+			amount: 5
+		}, {
+			name: "Group 6",
+			amount: 3
+		}]
+
+		let group3 = [{
+			name: "Group 1",
+			amount: 6
+		}, {
+			name: "Group 2",
+			amount: 6
+		}, {
+			name: "Group 3",
+			amount: 7
+		}, {
+			name: "Group 4",
+			amount: 7
+		}, {
+			name: "Group 5",
+			amount: 6
+		}, {
+			name: "Group 6",
+			amount: 8
+		}]
+		let colors = ["red", "green", "yellow", "blue", "orange", "lightblue", "maroon"]
+		let y_start = 400;
+		let x_start = 300
+		let x_space = 0;
+		let max_length = 600;
+		var width = 1500
+		var height = 500
+		var radius = 5
+		var count = 0
+		var groupCount = 3
+
+		//INITIALIZE AREA
+		var svg = d3.select('#chart-area')
+			.append('svg')
+			.attr('width', width)
+			.attr('height', height)
+
+		//INITIALIZE CIRCLES
+		x_space = max_length / group1.length
+
+		group1.forEach((group, i) => {
+			var groupElement = svg
+				.append("g")
+				.attr("id", 'group' + (i + 1))
+			// for (var n = 0; n < group.amount; n++) {
+			groupElement.selectAll('circle')
+				.data(d3.range(group.amount))
+				.enter()
+				.append("circle")
+				.attr('r', radius)
+				.attr('fill', colors[i])
+				.attr('cy', (c, n) => y_start - radius * 2 * n)
+				.attr('cx', x_start + x_space * i)
+			// }
+		})
+
+
+		//INITIALIZE TEXT
+		svg.append('g')
+			.attr("id", 'col-name')
+			.selectAll("title")
+			.data(group1)
+			.enter()
+			.append("text")
+			.attr('fill', (g, i) => i == 7 ? "white" : "black")
+			.attr("x", (g, i) => x_start + x_space * i)
+			.attr('y', y_start + 20)
+			.attr('text-anchor', "middle")
+			.style("opacity", 1)
+			.text((g) => g.name)
+
+		//UPDATE
+		setInterval(() => {
+			count += 1
+			console.log("UPDATE")
+			var duration = 1000
+
+			//GET NEW DATA
+			data = eval("group" + (count % groupCount + 1))
+			// x_space = max_length / eval("group" + (count % groupCount + 1)).length
+
+			//REMOVE
+			data.forEach((group, i) => {
+				var groupElement = svg.selectAll('#group' + (i + 1))
+				var cir = groupElement.selectAll('circle').data(d3.range(group.amount))
+
+				cir.exit()
+					.transition()
+					.duration(duration)
+					.style("opacity", 0)
+					.attr('r', 0)
+					.remove()
+
+				//ADD
+				cir.enter().append("circle")
+					.attr('r', 0)
+					.attr('fill', "white")
+
+				//UPDATE
+				cir.transition()
+					.duration(duration)
+					.attr('fill', colors[i])
+					.attr('cy', (c, n) => y_start - radius * 2 * n)
+					.attr("cx", x_start + x_space * i)
+					.attr("r", radius)
+
+			})
+
+		}, 3000)
+	</script>
+</body>
